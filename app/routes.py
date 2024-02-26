@@ -1,6 +1,7 @@
 from app import app, db
 from app.models import Transaction
 from flask import jsonify, request
+import requests
 
 
 @app.route('/transactions', methods=['GET'])
@@ -29,3 +30,12 @@ def add_transaction():
     db.session.commit()
 
     return jsonify({'message': 'Transaction added successfully'}), 201
+
+
+def get_exchange_rate():
+    response = requests.get('http://api-cryptopia.adca.sh/v1/prices/ticker')
+    if response.status_code == 200:
+        data = response.json()
+        for item in data['data']:
+            if item['symbol'] == 'BTC/EUR':
+                return float(item['value'])
