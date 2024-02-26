@@ -32,6 +32,19 @@ def add_transaction():
     return jsonify({'message': 'Transaction added successfully'}), 201
 
 
+@app.route('/balance', methods=['GET'])
+def get_balance():
+    unspent_transactions = Transaction.query.filter_by(spent=False).all()
+    btc_balance = sum(transaction.amount for transaction in unspent_transactions)
+
+    exchange_rate = get_exchange_rate()
+    if not exchange_rate:
+        return jsonify({'message': 'Failed to retrieve exchange rate'}), 500
+
+    eur_balance = btc_balance * exchange_rate
+    return jsonify({'btc_balance': btc_balance, 'eur_balance': eur_balance})
+
+
 def get_exchange_rate():
     response = requests.get('http://api-cryptopia.adca.sh/v1/prices/ticker')
     if response.status_code == 200:
